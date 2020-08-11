@@ -1,12 +1,6 @@
-import os
-import json
 import pygame
-import pyautogui
 import math
 import operator
-
-import config
-from dov.xlib2pyautogui import get_xlib_to_pyautogui_keymapping
 
 
 threshold_radius = 0.8
@@ -14,14 +8,6 @@ dialing_threshold = 0.2
 
 joystick_id = 0
 left_axes, right_axes = (0, 1), (3, 4)
-
-buttons = {0: 'space', 1: 'return', 3: 'backspace', 4: 'shift',
-           5: 'ctrl', 6: 'alt', 7: 'winleft'}
-
-xlib2pyautogui = get_xlib_to_pyautogui_keymapping()
-action_map = {(tuple(x[0][0]), tuple(x[0][1])): xlib2pyautogui[x[1]]
-              for x in json.load(open(os.path.join(config.datadir, 'keymap.json')))
-              if x[1] in xlib2pyautogui}
 
 
 def get_sector_4(x, y):
@@ -84,6 +70,23 @@ def angle_diff(a, b):
     return -f if f < g else g
 
 
+class DovEvent:
+    STICK_ACTION = 0
+    KEY_DOWN = 1
+    KEY_UP = 2
+
+    def __init__(self, type, **data):
+        self.type = type
+        self.data = data
+
+    def __getattr__(self, key):
+        return self.data[key]
+
+    def __repr__(self):
+        attrs = ', '.join((f'{k}={v}' for k, v in self.data.items()))
+        return f'DovEvent(type={self.type}, {attrs})'
+
+
 class Joystick:
     def __init__(self):
         self.reset()
@@ -130,61 +133,61 @@ class Joystick:
                 self.dialing = False
 
 
-def trigger_action(inp):
-    inp = tuple(tuple(x) for x in inp)
-    if action := action_map.get(inp):
-        pyautogui.press(action)
-
-
-def handle_stick_positions(lx, ly, rx, ry, left=Joystick(), right=Joystick()):
+def handle_stick_positions(lx, ly, rx, ry, event_callback, left=Joystick(), right=Joystick()):
     left.frame(lx, ly)
     right.frame(rx, ry)
 
     if not left.active and not right.active and (left.stack or right.stack):
-        trigger_action((left.stack, right.stack))
+        inp = (tuple(left.stack), tuple(right.stack))
+        event_callback(DovEvent(DovEvent.STICK_ACTION, inp=inp))
         left.reset()
         right.reset()
 
 
-def handle_hat_motions(x, y, state=[0, 0]):
+def handle_hat_motions(x, y, event_callback, state=[0, 0]):
     prev_x, prev_y = state
-    x, y = state[0], state[1] = event.values
+    x, y = state[0], state[1] = x, y
     if prev_x == 0 and x == -1:
-        pyautogui.keyDown('left')
+        event_callback(DovEvent(DovEvent.KEY_DOWN, key='left'))
     elif prev_x == 0 and x == 1:
-        pyautogui.keyDown('right')
+        event_callback(DovEvent(DovEvent.KEY_DOWN, key='right'))
     elif prev_y == 0 and y == -1:
-        pyautogui.keyDown('down')
+        event_callback(DovEvent(DovEvent.KEY_DOWN, key='down'))
     elif prev_y == 0 and y == 1:
-        pyautogui.keyDown('up')
+        event_callback(DovEvent(DovEvent.KEY_DOWN, key='up'))
     elif prev_x == -1 and x == 0:
-        pyautogui.keyUp('left')
+        event_callback(DovEvent(DovEvent.KEY_UP, key='left'))
     elif prev_x == 1 and x == 0:
-        pyautogui.keyUp('right')
+        event_callback(DovEvent(DovEvent.KEY_UP, key='right'))
     elif prev_y == -1 and y == 0:
-        pyautogui.keyUp('down')
+        event_callback(DovEvent(DovEvent.KEY_UP, key='down'))
     elif prev_y == 1 and y == 0:
-        pyautogui.keyUp('up')
+        event_callback(DovEvent(DovEvent.KEY_UP, key='up'))
 
 
-def update(joystick):
+buttons = {0: 'space', 1: 'return', 3: 'backspace', 4: 'shift',
+           5: 'ctrl', 6: 'alt', 7: 'winleft'}
+
+
+def update(joystick, event_callback):
     for event in pygame.event.get():
         if event.type == pygame.JOYBUTTONDOWN:
             if key := buttons.get(event.button):
-                pyautogui.keyDown(key)
+                event_callback(DovEvent(DovEvent.KEY_DOWN, key=key))
         elif event.type == pygame.JOYBUTTONUP:
             if key := buttons.get(event.button):
-                pyautogui.keyUp(key)
+                event_callback(DovEvent(DovEvent.KEY_UP, key=key))
         elif event.type == pygame.JOYHATMOTION:
-            handle_hat_motions(*event.values)
+            handle_hat_motions(*event.value, event_callback)
 
     # Update sticks
     handle_stick_positions(*[joystick.get_axis(x) for x in [left_axes[0], left_axes[1],
-                                                            right_axes[0], right_axes[1]]])
+                                                            right_axes[0], right_axes[1]]],
+                          event_callback)
 
 
 
-def main():
+def run_dov(event_callback):
     pygame.init()
     pygame.joystick.init()
     clock = pygame.time.Clock()
@@ -194,9 +197,11 @@ def main():
     joystick.init()
 
     while True:
-        update(joystick)
+        update(joystick, event_callback)
         clock.tick(20)
 
 
 if __name__ == '__main__':
-    main()
+    def print_event(e):
+        print(e)
+    run_dov(print_event)

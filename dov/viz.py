@@ -6,7 +6,7 @@ import pygame
 import pygame.gfxdraw
 import pygame.freetype
 
-from dov.main import joystick_id, left_axes, right_axes, threshold_radius
+from dov.core import joystick_id, left_axes, right_axes, threshold_radius
 
 
 pygame.init()
