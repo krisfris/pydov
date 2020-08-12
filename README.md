@@ -25,7 +25,7 @@ as follows.
 This mapping would map `a` to the left stick being moved up and back to the center, `e` to the left stick being moved right and to the center, `o` to the bottom and to the center and `i` to the
 left and to the center.
 
-The file is expected to be located at os.path.join(appdirs.user_data_dir('dov'), 'keymap.json'). This shall be made configurable in the future.
+The file is expected to be located at `os.path.join(appdirs.user_data_dir('dov'), 'keymap.json')`. This shall be made configurable in the future.
 
 With the action mapping in place, you can start dov and use it for example to generate keyboard events.
 
