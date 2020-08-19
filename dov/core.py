@@ -2,9 +2,8 @@ import pygame
 import math
 import operator
 
+from config import threshold_radius, dialing_threshold, framerate
 
-threshold_radius = 0.8
-dialing_threshold = 0.2
 
 joystick_id = 0
 left_axes, right_axes = (0, 1), (3, 4)
@@ -198,7 +197,7 @@ def run_dov(event_callback):
 
     while True:
         update(joystick, event_callback)
-        clock.tick(20)
+        clock.tick(framerate)
 
 
 if __name__ == '__main__':
