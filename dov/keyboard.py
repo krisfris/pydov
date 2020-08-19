@@ -10,7 +10,7 @@ from dov.xlib2pyautogui import get_xlib_to_pyautogui_keymapping
 
 xlib2pyautogui = get_xlib_to_pyautogui_keymapping()
 action_map = {(tuple(x[0][0]), tuple(x[0][1])): xlib2pyautogui[x[1]]
-              for x in json.load(open(os.path.join(config.datadir, 'keymap.json')))
+              for x in json.load(open(config.keymap_file))
               if x[1] in xlib2pyautogui}
 
 
