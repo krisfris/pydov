@@ -2,7 +2,7 @@
 Touch typing on a gamepad. The goal of this project is to provide an efficient and as ergonomic as possible typing system for gamepads based on simple gestures.
 For a full explanation on how this works please see my blog post [Touch typing on a gamepad](https://darkshadow.io/2020/07/07/touch-typing-on-a-gamepad.html).
 
-*To provide feedback, discuss features or collaboration, join this project's Matrix server <https://matrix.to/#/#dov:matrix.org>*
+*To provide feedback, discuss features or collaboration, join this project's Matrix chat room <https://matrix.to/#/#dov:matrix.org>*
 
 ## Development setup
 
